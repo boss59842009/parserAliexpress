@@ -23,7 +23,7 @@
 
 ---
 
-## 1. Features(#features)
+## 1. Features
 
 - **Multiple Parsing Modes:**
   - **Single:** Parse a single product by its URL.
