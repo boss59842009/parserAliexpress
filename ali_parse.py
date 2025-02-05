@@ -1,12 +1,14 @@
+import os
+
 import requests
 from data import (get_item_info, get_shopify_one_item, get_items_list_from_query,
                   save_json, save_csv, save_shopify_csv_one_item, save_shopify_csv_list_items)
 from hosting import upload_photos
+from dotenv import load_dotenv
+load_dotenv()
 
-headers = {
-	"x-rapidapi-key": "6cc58def85msh5562b6c8c111e85p16feebjsn52f6d6e2428d",
-	"x-rapidapi-host": "aliexpress-datahub.p.rapidapi.com"
-}
+headers = os.getenv('HEADERS')
+
 def get_item_id_from_url(link: str) -> str:
     """Повертає ID товару з посилання."""
     try:
@@ -37,7 +39,7 @@ def parse_item(headers: dict, item_id: str) -> tuple[dict, dict] | None:
                 return None
         else:
             return None
-    except Exception:
+    except Exception as e:
         return None
 
     try:
@@ -112,3 +114,6 @@ def parse_items_from_query(headers: dict, query: str, items_count: int) -> None:
         items_list = get_items_list_from_query(links_list)
         if items_count:
             parse_items_from_links(headers, items_list[:items_count], "list_items_from_query")
+
+
+

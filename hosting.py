@@ -1,16 +1,19 @@
+import os
+
 import cloudinary
 import cloudinary.uploader
 
+from dotenv import load_dotenv
+
 # Налаштування Cloudinary
 # https://console.cloudinary.com/settings/c-6f5534e46e74f613fa802f99963078/api-keys
-CLOUD_NAME = "dnghh41px"
-API_KEY = "884367949269729"
-API_SECRET = "IzJSTpOFNIhWYCC8Lm5bDnWbYJs"
+load_dotenv()
+
 
 cloudinary.config(
-    cloud_name=CLOUD_NAME,
-    api_key=API_KEY,
-    api_secret=API_SECRET,
+    cloud_name=os.getenv("CLOUD_NAME"),
+    api_key=os.getenv("API_KEY"),
+    api_secret=os.getenv("API_SECRET"),
     secure=True
 )
 

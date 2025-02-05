@@ -98,7 +98,7 @@ class ParserApp(QtWidgets.QWidget):
         if not self.link_or_links:
             QtWidgets.QMessageBox.warning(self, "Warning", "Будь ласка, введіть посилання або запит.")
             return
-        self.btn_start.setEnabled(False)
+        self.btn_start.setEnabled(True)
         self.log_text.appendPlainText("==== Запуск процесу парсингу ====")
         self.progress_bar.setValue(0)
         run_in_thread(

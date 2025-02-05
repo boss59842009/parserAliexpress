@@ -4,6 +4,21 @@ import os
 import re
 
 
+def get_range_price(items: dict) -> float:
+    if items["DiscountPrice"]:
+        if items["OriginalPrice"]:
+            min_price = float(items["DiscountPrice"].split(" - ")[0])
+            max_price = float(items["OriginalPrice"].split(" - ")[1])
+            return round((max_price + min_price) / 2, 2)
+        else:
+            min_price = float(items["DiscountPrice"].split(" - ")[0])
+            max_price = float(items["DiscountPrice"].split(" - ")[1])
+            return round((max_price + min_price) / 2, 2)
+    else:
+        min_price = float(items["OriginalPrice"].split(" - ")[0])
+        max_price = float(items["OriginalPrice"].split(" - ")[1])
+        return round((max_price + min_price) / 2, 2)
+
 def get_item_info(item_data: tuple) -> dict:
     """
     Повертає інформацію про товар у вигляді словника.
@@ -57,6 +72,27 @@ def get_item_info(item_data: tuple) -> dict:
         raw_html = description_obj.get("html", "")
         description_text = re.sub(r'<[^>]*>', '', raw_html).strip()
 
+    # Видалення небажаних фрагментів із опису
+    # Видаляємо JavaScript-код, наприклад: window.adminAccountId=6000091325;
+    description_text = re.sub(r'window\.adminAccountId=\d+;', '', description_text)
+    # Видаляємо блоки, що починаються з "with(document)" і до першого знайденого src="
+    description_text = re.sub(r'with\(document\).*?src="[^"]+"', '', description_text, flags=re.DOTALL)
+    # Видаляємо HTML-сутність &bull; та інші подібні (за потребою можна додати додаткові сутності)
+    description_text = re.sub(r'&bull;', '', description_text)
+    # Видаляємо зайві пробіли та перенос рядків
+    description_text = re.sub(r'\s+', ' ', description_text).strip()
+
+    # Формування комбінованого опису для Body (HTML):
+    # Якщо опис відсутній – повертаємо лише Specifications,
+    # якщо опис є – об'єднуємо Specifications та Description.
+    if not description_text:
+        body_html = specs_info
+    else:
+        body_html = specs_info + "\n" + description_text
+
+    # При необхідності можна присвоїти очищений опис назад, якщо потрібно використовувати його окремо
+    description_text = body_html
+
     original_price = item.get('result', {}).get("item", {}).get("sku", {}).get("def", {}).get("price", "")
     discount_price = item.get('result', {}).get("item", {}).get("sku", {}).get("def", {}).get("promotionPrice", "")
   
@@ -93,6 +129,7 @@ def get_shopify_one_item(items: dict, photos_url: list[str]) -> list[dict]:
     """
     body_html = (items.get("Specifications", "") + "\n" + items.get("Description", "")).strip()
     shopify_items = []
+    price = get_range_price(items)
     
     main_row = {
         "Title": items.get("Title", ""),
@@ -142,7 +179,7 @@ def get_shopify_one_item(items: dict, photos_url: list[str]) -> list[dict]:
         "Variant Weight Unit": "",
         "Variant Tax Code": "",
         "Cost per item": "",
-        "Price / International": items.get("DiscountPrice", ""),
+        "Price / International": price,
         "Compare At Price / International": "",
         "Status": "draft"
     }
@@ -227,21 +264,26 @@ def save_csv(items: dict | list[dict], folder: str) -> None:
     if isinstance(items, dict):
         items["MainPhotoLinks"] = ",".join(items["MainPhotoLinks"])
         items["ReviewsPhotoLinks"] = ",".join(items["ReviewsPhotoLinks"])
+        fieldnames = ["Handle"] + list(items.keys())
+        count = 1
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=items.keys())
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerow(items)
+            writer.writerow({"Handle": count, **items})
     else:
-        
+        fieldnames = ["Handle"] + list(items[0].keys())
+        count = 1
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=items[0].keys())
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
+            count = 1
             for item in items:
                 if isinstance(item.get("MainPhotoLinks"), list):
                     item["MainPhotoLinks"] = ",".join(item["MainPhotoLinks"])
                 if isinstance(item.get("ReviewsPhotoLinks"), list):
                     item["ReviewsPhotoLinks"] = ",".join(item["ReviewsPhotoLinks"])
-                writer.writerow(item)
+                writer.writerow({"Handle": count, **item})
+                count += 1
     print("CSV файл успішно збережено!")
 
 def save_shopify_csv_one_item(items: list[dict] | dict, folder: str) -> None:
@@ -278,5 +320,9 @@ def save_shopify_csv_list_items(items: list[list[dict]], folder: str) -> None:
         for product_items in items:
             for item in product_items:
                 writer.writerow({"Handle": count, **item})
-                count += 1
+            count += 1
     print("Shopify CSV файл успішно збережено!")
+
+
+
+
