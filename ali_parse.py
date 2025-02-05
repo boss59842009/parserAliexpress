@@ -7,7 +7,10 @@ from hosting import upload_photos
 from dotenv import load_dotenv
 load_dotenv()
 
-headers = os.getenv('HEADERS')
+headers = {
+    "x-rapidapi-key": os.getenv("x-rapidapi-key"),
+    "x-rapidapi-host": os.getenv("x-rapidapi-host")
+}
 
 def get_item_id_from_url(link: str) -> str:
     """Повертає ID товару з посилання."""
