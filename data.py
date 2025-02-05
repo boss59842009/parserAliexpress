@@ -2,6 +2,7 @@ import json
 import csv
 import os
 import re
+from html import unescape
 
 
 def get_range_price(items: dict) -> float:
@@ -81,6 +82,8 @@ def get_item_info(item_data: tuple) -> dict:
     description_text = re.sub(r'&bull;', '', description_text)
     # Видаляємо зайві пробіли та перенос рядків
     description_text = re.sub(r'\s+', ' ', description_text).strip()
+    # Розшифровуємо HTML-сутності (наприклад, &quot; -> ")
+    description_text = unescape(description_text)
 
     # Формування комбінованого опису для Body (HTML):
     # Якщо опис відсутній – повертаємо лише Specifications,
@@ -265,6 +268,7 @@ def save_csv(items: dict | list[dict], folder: str) -> None:
         items["MainPhotoLinks"] = ",".join(items["MainPhotoLinks"])
         items["ReviewsPhotoLinks"] = ",".join(items["ReviewsPhotoLinks"])
         fieldnames = ["Handle"] + list(items.keys())
+        items["Description"] = ""
         count = 1
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -272,17 +276,18 @@ def save_csv(items: dict | list[dict], folder: str) -> None:
             writer.writerow({"Handle": count, **items})
     else:
         fieldnames = ["Handle"] + list(items[0].keys())
-        count = 1
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             count = 1
             for item in items:
+                item["Description"] = ""
                 if isinstance(item.get("MainPhotoLinks"), list):
                     item["MainPhotoLinks"] = ",".join(item["MainPhotoLinks"])
                 if isinstance(item.get("ReviewsPhotoLinks"), list):
                     item["ReviewsPhotoLinks"] = ",".join(item["ReviewsPhotoLinks"])
                 writer.writerow({"Handle": count, **item})
+                step = len(item.get("MainPhotoLinks", "1"))
                 count += 1
     print("CSV файл успішно збережено!")
 
@@ -302,7 +307,6 @@ def save_shopify_csv_one_item(items: list[dict] | dict, folder: str) -> None:
         count = 1
         for item in items:
             writer.writerow({"Handle": count, **item})
-            count += 1
     print("Shopify CSV файл успішно збережено!")
 
 

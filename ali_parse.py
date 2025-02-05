@@ -115,5 +115,3 @@ def parse_items_from_query(headers: dict, query: str, items_count: int) -> None:
         if items_count:
             parse_items_from_links(headers, items_list[:items_count], "list_items_from_query")
 
-
-

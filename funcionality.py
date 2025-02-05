@@ -151,7 +151,7 @@ def parse_multiple_links(links_str: str, log_callback=None, progress_callback=No
             update_progress()
         log_message("Збереження агрегованих файлів.", log_callback)
         save_json(product_list, "list_items")
-        save_csv(product_list, "list_items")
+        save_csv(product_list.copy(), "list_items")
         save_shopify_csv_list_items(shopify_products, "list_items")
         log_message("Агреговані файли успішно збережено.", log_callback)
         if progress_callback:
@@ -227,7 +227,7 @@ def parse_search_query(link: str, limit: int, log_callback=None, progress_callba
             update_progress()
         log_message("Збереження агрегованих файлів.", log_callback)
         save_json(product_list, "list_items_from_query")
-        save_csv(product_list, "list_items_from_query")
+        save_csv(product_list.copy(), "list_items_from_query")
         save_shopify_csv_list_items(shopify_products, "list_items_from_query")
         log_message("Агреговані файли успішно збережено.", log_callback)
         if progress_callback:
