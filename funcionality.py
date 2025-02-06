@@ -1,6 +1,7 @@
 import io
 import sys
 import threading
+from datetime import datetime
 from ali_parse import (
     headers,
     parse_item,
@@ -150,9 +151,10 @@ def parse_multiple_links(links_str: str, log_callback=None, progress_callback=No
             log_message(f"Товар {idx} оброблено успішно.", log_callback)
             update_progress()
         log_message("Збереження агрегованих файлів.", log_callback)
-        save_json(product_list, "list_items")
-        save_csv(product_list.copy(), "list_items")
-        save_shopify_csv_list_items(shopify_products, "list_items")
+        timestamp = datetime.now().strftime("%H_%M_%S")
+        save_json(product_list, f"list_items_{timestamp}")
+        save_csv(product_list.copy(), f"list_items_{timestamp}")
+        save_shopify_csv_list_items(shopify_products, f"list_items_{timestamp}")
         log_message("Агреговані файли успішно збережено.", log_callback)
         if progress_callback:
             progress_callback(100)
@@ -208,7 +210,6 @@ def parse_search_query(link: str, limit: int, log_callback=None, progress_callba
                 continue
             update_progress()
             item_dict = get_item_info(item_data)
-            print(item_dict)
             product_list.append(item_dict)
             update_progress()
             log_message(f"Дані товару {item_id} сформовано.", log_callback)
@@ -226,9 +227,9 @@ def parse_search_query(link: str, limit: int, log_callback=None, progress_callba
             log_message(f"Товар {idx} оброблено успішно.", log_callback)
             update_progress()
         log_message("Збереження агрегованих файлів.", log_callback)
-        save_json(product_list, "list_items_from_query")
-        save_csv(product_list.copy(), "list_items_from_query")
-        save_shopify_csv_list_items(shopify_products, "list_items_from_query")
+        save_json(product_list, f"list_items_from_{query}")
+        save_csv(product_list.copy(), f"list_items_from_{query}")
+        save_shopify_csv_list_items(shopify_products, f"list_items_from_{query}")
         log_message("Агреговані файли успішно збережено.", log_callback)
         if progress_callback:
             progress_callback(100)
@@ -238,6 +239,7 @@ def parse_search_query(link: str, limit: int, log_callback=None, progress_callba
             progress_callback(0)
     finally:
         sys.stdout = saved_stdout
+
 
 def start_parsing(mode: str, link_or_links: str, limit: int = 0,
                   log_callback=None, progress_callback=None):

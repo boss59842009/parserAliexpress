@@ -6,19 +6,25 @@ from html import unescape
 
 
 def get_range_price(items: dict) -> float:
-    if items["DiscountPrice"]:
-        if items["OriginalPrice"]:
-            min_price = float(items["DiscountPrice"].split(" - ")[0])
+    if isinstance(items["DiscountPrice"], str) and isinstance(items["OriginalPrice"], str):
+        if items["DiscountPrice"]:
+            if items["OriginalPrice"]:
+                min_price = float(items["DiscountPrice"].split(" - ")[0])
+                max_price = float(items["OriginalPrice"].split(" - ")[1])
+                return round((max_price + min_price) / 2, 2)
+            else:
+                min_price = float(items["DiscountPrice"].split(" - ")[0])
+                max_price = float(items["DiscountPrice"].split(" - ")[1])
+                return round((max_price + min_price) / 2, 2)
+        else:
+            min_price = float(items["OriginalPrice"].split(" - ")[0])
             max_price = float(items["OriginalPrice"].split(" - ")[1])
             return round((max_price + min_price) / 2, 2)
-        else:
-            min_price = float(items["DiscountPrice"].split(" - ")[0])
-            max_price = float(items["DiscountPrice"].split(" - ")[1])
-            return round((max_price + min_price) / 2, 2)
     else:
-        min_price = float(items["OriginalPrice"].split(" - ")[0])
-        max_price = float(items["OriginalPrice"].split(" - ")[1])
-        return round((max_price + min_price) / 2, 2)
+        if items["DiscountPrice"]:
+            return float(items["DiscountPrice"])
+        else:
+            return float(["OriginalPrice"])
 
 def get_item_info(item_data: tuple) -> dict:
     """
@@ -61,13 +67,21 @@ def get_item_info(item_data: tuple) -> dict:
             main_delivery_option = ""
     except Exception:
         main_delivery_option = ''
-    
-    # Отримання основних фото з опису
-    main_photo_links = ["https:" + image for image in item["result"]["item"]["description"]["images"]]
+
+        # Отримання фото з опису: беремо список з ключа "images" у "description"
+    description_obj = item["result"]["item"]["description"]
+    # Перший варіант: фото із description (якщо є)
+    if "images" in description_obj and description_obj["images"]:
+        main_photo_links = ["https:" + image for image in description_obj["images"]]
+    else:
+        # Резервний варіант: спробуємо отримати фото з іншого місця, наприклад з основного поля товару
+        if "images" in item["result"]["item"] and item["result"]["item"]["images"]:
+            main_photo_links = ["https:" + image for image in item["result"]["item"]["images"]]
+
+    # Отримання фото відгуків
     reviews_photo_links = ["https:" + image for image in reviews_photo]
     
     # Отримання текстового опису: спочатку ключ "text", інакше очищення HTML з "html"
-    description_obj = item["result"]["item"]["description"]
     description_text = description_obj.get("text", "").strip()
     if not description_text:
         raw_html = description_obj.get("html", "")

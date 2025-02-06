@@ -1,4 +1,6 @@
+import json
 import os
+from datetime import datetime
 
 import requests
 from data import (get_item_info, get_shopify_one_item, get_items_list_from_query,
@@ -8,8 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 headers = {
-    "x-rapidapi-key": os.getenv("x-rapidapi-key"),
-    "x-rapidapi-host": os.getenv("x-rapidapi-host")
+    "x-rapidapi-key": os.getenv("RAPID_API_KEY"),
+    "x-rapidapi-host": "aliexpress-datahub.p.rapidapi.com"
 }
 
 def get_item_id_from_url(link: str) -> str:
@@ -117,4 +119,5 @@ def parse_items_from_query(headers: dict, query: str, items_count: int) -> None:
         items_list = get_items_list_from_query(links_list)
         if items_count:
             parse_items_from_links(headers, items_list[:items_count], "list_items_from_query")
+
 
