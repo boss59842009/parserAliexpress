@@ -99,22 +99,16 @@ def get_item_info(item_data: tuple) -> dict:
     # Розшифровуємо HTML-сутності (наприклад, &quot; -> ")
     description_text = unescape(description_text)
 
-    # Формування комбінованого опису для Body (HTML):
-    # Якщо опис відсутній – повертаємо лише Specifications,
-    # якщо опис є – об'єднуємо Specifications та Description.
     if not description_text:
-        body_html = specs_info
+        description_text = ""
     else:
-        body_html = specs_info + "\n" + description_text
+        description_text = description_text
 
-    # При необхідності можна присвоїти очищений опис назад, якщо потрібно використовувати його окремо
-    description_text = body_html
 
     original_price = item.get('result', {}).get("item", {}).get("sku", {}).get("def", {}).get("price", "")
     discount_price = item.get('result', {}).get("item", {}).get("sku", {}).get("def", {}).get("promotionPrice", "")
   
     return {
-
         "Link": "https:" + item["result"]["item"]["itemUrl"],
         "Title": item["result"]["item"]["title"],
         "DiscountPrice": discount_price if discount_price else "",
@@ -168,7 +162,7 @@ def get_shopify_one_item(items: dict, photos_url: list[str]) -> list[dict]:
         "Variant Inventory Qty": 100,
         "Variant Inventory Policy": "continue",
         "Variant Fulfillment Service": "manual",
-        "Variant Price": "",
+        "Variant Price": price,
         "Variant Compare At Price": "",
         "Variant Requires Shipping": "",
         "Variant Taxable": "",
@@ -196,7 +190,7 @@ def get_shopify_one_item(items: dict, photos_url: list[str]) -> list[dict]:
         "Variant Weight Unit": "",
         "Variant Tax Code": "",
         "Cost per item": "",
-        "Price / International": price,
+        "Price / International": "",
         "Compare At Price / International": "",
         "Status": "draft"
     }
@@ -282,7 +276,7 @@ def save_csv(items: dict | list[dict], folder: str) -> None:
         items["MainPhotoLinks"] = ",".join(items["MainPhotoLinks"])
         items["ReviewsPhotoLinks"] = ",".join(items["ReviewsPhotoLinks"])
         fieldnames = ["Handle"] + list(items.keys())
-        items["Description"] = ""
+        # items["Description"] = ""
         count = 1
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -295,7 +289,7 @@ def save_csv(items: dict | list[dict], folder: str) -> None:
             writer.writeheader()
             count = 1
             for item in items:
-                item["Description"] = ""
+                # item["Description"] = ""
                 if isinstance(item.get("MainPhotoLinks"), list):
                     item["MainPhotoLinks"] = ",".join(item["MainPhotoLinks"])
                 if isinstance(item.get("ReviewsPhotoLinks"), list):
